@@ -1,0 +1,58 @@
+name: Deploy to DEV
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Check
+    steps:
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Installer les dépendances
+        run: npm install
+
+      - name: 🔍 npm audit
+        run: npm audit --audit-level=critical
+        continue-on-error: true
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: security
+    name: 🚀 Build & Deploy
+    steps:
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Installer les dépendances
+        run: npm install
+
+      - name: 🧪 Tests
+        run: npm test -- --passWithNoTests
+
+      - name: 🏗️ Build React DEV
+        run: npm run build
+        env:
+          REACT_APP_ENV: development
+          CI: false
+
+      - name: 🟢 Déployer sur DEV
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: webapp-lab7-dev-mmlll
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DEV }}
+          package: .

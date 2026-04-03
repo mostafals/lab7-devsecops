@@ -1,0 +1,58 @@
+name: Deploy to STAGING
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Check
+    steps:
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Installer les dépendances
+        run: npm install
+
+      - name: 🔍 npm audit
+        run: npm audit --audit-level=critical
+        continue-on-error: false
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: security
+    name: 🚀 Build & Deploy
+    steps:
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Installer les dépendances
+        run: npm install
+
+      - name: 🧪 Tests
+        run: npm test -- --passWithNoTests
+
+      - name: 🏗️ Build React STAGING
+        run: npm run build
+        env:
+          REACT_APP_ENV: staging
+          CI: false
+
+      - name: 🟡 Déployer sur STAGING
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: webapp-lab7-staging-mmlll
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_STAGING }}
+          package: .
