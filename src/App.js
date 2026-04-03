@@ -13,7 +13,7 @@ function App() {
   const products = [
     { id: 1, name: 'Produit A', prix: 100 },
     { id: 2, name: 'Produit B', prix: 200 },
-    { id: 3, name: 'Produit C', prix: 300 }
+    { id: 3, name: 'Produit C', prix: 3001 }
   ];
 
   return (
